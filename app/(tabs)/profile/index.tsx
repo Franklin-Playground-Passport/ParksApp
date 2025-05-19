@@ -48,7 +48,6 @@ export default function ProfileScreen() {
     ],
   };
 
-  // Get user initials for avatar
   const userInitials = getInitials(user.name);
 
   return (
