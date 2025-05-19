@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
 
-// Replace the coordinates below with the real ones from your geocoding script
 const CHECKPOINTS = [
   [
     {

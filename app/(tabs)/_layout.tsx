@@ -21,7 +21,7 @@ export default function TabsLayout() {
             navigationState={state}
             safeAreaInsets={insets}
             inactiveColor="gray"
-            activeColor="blue"
+            activeColor="green"
             onTabPress={({ route, preventDefault }) => {
               const event = navigation.emit({
                 type: "tabPress",
