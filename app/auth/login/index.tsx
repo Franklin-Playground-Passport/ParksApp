@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
@@ -6,7 +7,6 @@ import { Button } from "react-native-paper";
 export default function LoginScreen() {
   const router = useRouter();
 
-  // Simple navigation to tabs without authentication
   const handleLogin = () => {
     router.replace("/(tabs)/home");
   };
@@ -31,12 +31,13 @@ export default function LoginScreen() {
 
           <Button
             mode="contained"
+            icon={({ size }) => (
+              <Ionicons name="logo-google" size={size} color="#fff" />
+            )}
             onPress={handleLogin}
             style={styles.googleButton}
-            contentStyle={styles.buttonContent}
-            icon="google"
           >
-            Login with Google
+            Sign in with Google
           </Button>
 
           <View style={styles.footer}>
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(18, 64, 38, 0.65)", // Dark green transparent overlay
+    backgroundColor: "rgba(18, 64, 38, 0.65)",
   },
   container: {
     flex: 1,
@@ -84,14 +85,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   googleButton: {
-    width: "80%",
-    borderRadius: 8,
-    backgroundColor: "#FFFFFF",
+    width: 240,
+    height: 48,
     marginVertical: 20,
-  },
-  buttonContent: {
-    height: 50,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#4285F4",
   },
   footer: {
     position: "absolute",

@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Modal,
   ScrollView,
   StyleSheet,
@@ -11,9 +12,19 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
-import { Button, Card, TextInput } from "react-native-paper";
+import { Button, Card, ProgressBar, TextInput } from "react-native-paper";
 
-const CHECKPOINTS = [
+// Define a type for your checkpoint objects
+interface Checkpoint {
+  id: number;
+  title: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+}
+
+// Properly declare CHECKPOINTS with its type
+const CHECKPOINTS: Checkpoint[][] = [
   [
     {
       id: 8,
@@ -151,6 +162,11 @@ export default function ExploreScreen() {
   const [isScannerOpen, setScannerOpen] = useState(false);
   const [scannedParkId, setScannedParkId] = useState<number | null>(null);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [visitedParks, setVisitedParks] = useState<number[]>([]);
+  const [isProgressCollapsed, setIsProgressCollapsed] = useState(false);
+
+  // Animation for sliding progress panel
+  const progressHeight = useRef(new Animated.Value(1)).current;
 
   type ResponsesType = Record<number, string>;
 
@@ -203,9 +219,51 @@ export default function ExploreScreen() {
   const handleSubmitQuestionnaire = () => {
     // In a real app, you would save the responses to a database or API
     console.log("Submitted answers for park ID:", scannedParkId, responses);
+
+    // Add the park to visited parks if not already there
+    if (scannedParkId && !visitedParks.includes(scannedParkId)) {
+      setVisitedParks((prev) => [...prev, scannedParkId]);
+    }
+
     alert("Thank you for completing the questionnaire!");
     setShowQuestionnaire(false);
   };
+
+  // Calculate progress
+  const totalParks = CHECKPOINTS[0].length;
+  const completedParks = visitedParks.length;
+  const progressPercentage = totalParks > 0 ? completedParks / totalParks : 0;
+
+  // Toggle progress section with animation
+  const toggleProgressSection = () => {
+    // Start animation
+    Animated.timing(progressHeight, {
+      toValue: isProgressCollapsed ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+
+    // Update state after animation starts
+    setIsProgressCollapsed(!isProgressCollapsed);
+  };
+
+  // Interpolate height for the map container
+  const mapHeightInterpolation = progressHeight.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["100%", "60%"],
+  });
+
+  // Instead of directly animating flex or height with "auto",
+  // use maxHeight and opacity for a similar effect
+  const progressMaxHeight = progressHeight.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 500], // Use a large enough value instead of "auto"
+  });
+
+  const progressOpacity = progressHeight.interpolate({
+    inputRange: [0, 0.2, 1],
+    outputRange: [0, 1, 1],
+  });
 
   if (!region) {
     return (
@@ -217,29 +275,152 @@ export default function ExploreScreen() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <MapView style={styles.map} region={region} showsUserLocation={true}>
-        {CHECKPOINTS[0].map((checkpoint) => (
-          <Marker
-            key={checkpoint.id}
-            coordinate={{
-              latitude: checkpoint.latitude,
-              longitude: checkpoint.longitude,
-            }}
-            title={checkpoint.title}
-            description={checkpoint.description}
-            onPress={() => handleSimulateScan(checkpoint.id)}
-          />
-        ))}
-      </MapView>
-
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Park Explorer</Text>
       </View>
 
+      {/* Map Section - Dynamic height based on animation */}
+      <Animated.View
+        style={[styles.mapContainer, { height: mapHeightInterpolation }]}
+      >
+        <MapView style={styles.map} region={region} showsUserLocation={true}>
+          {CHECKPOINTS[0].map((checkpoint) => (
+            <Marker
+              key={checkpoint.id}
+              coordinate={{
+                latitude: checkpoint.latitude,
+                longitude: checkpoint.longitude,
+              }}
+              title={checkpoint.title}
+              description={checkpoint.description}
+              pinColor={
+                visitedParks.includes(checkpoint.id) ? "#4CAF50" : "#FF5722"
+              }
+              onPress={() => handleSimulateScan(checkpoint.id)}
+            />
+          ))}
+        </MapView>
+      </Animated.View>
+
+      {/* Progress Section - Animated height */}
+      <Animated.View
+        style={[
+          styles.progressContainer,
+          {
+            maxHeight: progressMaxHeight,
+            opacity: progressOpacity,
+            overflow: "hidden",
+          },
+        ]}
+      >
+        <Text style={styles.progressTitle}>Your Explorer Progress</Text>
+
+        <View style={styles.progressBarContainer}>
+          <ProgressBar
+            progress={progressPercentage}
+            color="#4CAF50"
+            style={styles.progressBar}
+          />
+          <Text style={styles.progressText}>
+            {completedParks} of {totalParks} parks explored (
+            {Math.round(progressPercentage * 100)}%)
+          </Text>
+        </View>
+
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <View style={[styles.statBadge, { backgroundColor: "#E8F5E9" }]}>
+              <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+              <Text style={styles.statNumber}>{completedParks}</Text>
+            </View>
+            <Text style={styles.statLabel}>Visited</Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <View style={[styles.statBadge, { backgroundColor: "#FFF3E0" }]}>
+              <Ionicons name="map" size={24} color="#FF9800" />
+              <Text style={styles.statNumber}>
+                {totalParks - completedParks}
+              </Text>
+            </View>
+            <Text style={styles.statLabel}>Remaining</Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <View style={[styles.statBadge, { backgroundColor: "#E3F2FD" }]}>
+              <Ionicons name="trophy" size={24} color="#1976D2" />
+              <Text style={styles.statNumber}>
+                {completedParks >= totalParks
+                  ? "🌟"
+                  : Math.round(progressPercentage * 100) + "%"}
+              </Text>
+            </View>
+            <Text style={styles.statLabel}>Progress</Text>
+          </View>
+        </View>
+
+        <ScrollView
+          style={styles.recentActivity}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+        >
+          {visitedParks
+            .slice(-3)
+            .reverse()
+            .map((parkId) => {
+              const park = CHECKPOINTS[0].find((p) => p.id === parkId);
+              return park ? (
+                <Card key={parkId} style={styles.recentCard}>
+                  <Card.Content>
+                    <Ionicons name="location" size={20} color="#4CAF50" />
+                    <Text style={styles.recentParkName}>{park.title}</Text>
+                    <Text style={styles.recentTime}>Completed</Text>
+                  </Card.Content>
+                </Card>
+              ) : null;
+            })}
+          {visitedParks.length === 0 && (
+            <Card style={[styles.recentCard, styles.emptyCard]}>
+              <Card.Content style={styles.emptyCardContent}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={24}
+                  color="#9E9E9E"
+                />
+                <Text style={styles.emptyCardText}>Visit your first park!</Text>
+              </Card.Content>
+            </Card>
+          )}
+        </ScrollView>
+      </Animated.View>
+
+      {/* Toggle Progress Button */}
+      <TouchableOpacity
+        style={[
+          styles.toggleProgressButton,
+          {
+            bottom: isProgressCollapsed ? 30 : 90,
+            backgroundColor: isProgressCollapsed
+              ? "rgba(232, 245, 233, 0.9)"
+              : "#E8F5E9",
+          },
+        ]}
+        onPress={toggleProgressSection}
+      >
+        <Ionicons
+          name={isProgressCollapsed ? "chevron-up" : "chevron-down"}
+          size={24}
+          color="#4CAF50"
+        />
+        <Text style={styles.toggleProgressText}>
+          {isProgressCollapsed ? "Show Progress" : "Hide Progress"}
+        </Text>
+      </TouchableOpacity>
+
       {/* Scan QR Button */}
       <TouchableOpacity
-        style={styles.scanButton}
+        style={[styles.scanButton, { bottom: isProgressCollapsed ? 90 : 30 }]}
         onPress={() => setScannerOpen(true)}
       >
         <Ionicons name="qr-code" size={28} color="white" />
@@ -371,8 +552,9 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  map: {
-    ...StyleSheet.absoluteFillObject,
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f8f8",
   },
   header: {
     position: "absolute",
@@ -383,11 +565,104 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     elevation: 3,
+    zIndex: 10,
   },
   headerText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#2E7D32",
+  },
+  mapContainer: {
+    width: "100%",
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    overflow: "hidden",
+    elevation: 3,
+  },
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  progressContainer: {
+    overflow: "hidden",
+    padding: 16,
+    paddingBottom: 80, // Space for the scan button
+  },
+  progressTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2E7D32",
+    marginBottom: 12,
+  },
+  progressBarContainer: {
+    marginBottom: 20,
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 5,
+    marginBottom: 8,
+  },
+  progressText: {
+    color: "#616161",
+    fontSize: 14,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  statItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  statBadge: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  statNumber: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginTop: 2,
+  },
+  statLabel: {
+    color: "#757575",
+    fontSize: 13,
+  },
+  recentActivity: {
+    flexGrow: 0,
+  },
+  recentCard: {
+    width: 150,
+    marginRight: 12,
+    borderRadius: 10,
+    elevation: 2,
+  },
+  recentParkName: {
+    fontWeight: "bold",
+    fontSize: 14,
+    marginVertical: 4,
+  },
+  recentTime: {
+    color: "#9E9E9E",
+    fontSize: 12,
+  },
+  emptyCard: {
+    backgroundColor: "#ECEFF1",
+    width: 200,
+  },
+  emptyCardContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  emptyCardText: {
+    color: "#757575",
+    marginTop: 8,
+    textAlign: "center",
   },
   scanButton: {
     position: "absolute",
@@ -405,6 +680,23 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+    marginLeft: 8,
+  },
+  toggleProgressButton: {
+    position: "absolute",
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    elevation: 2,
+    zIndex: 10,
+  },
+  toggleProgressText: {
+    color: "#4CAF50",
+    fontWeight: "bold",
+    fontSize: 14,
     marginLeft: 8,
   },
   modalOverlay: {

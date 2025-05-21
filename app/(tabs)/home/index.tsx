@@ -63,7 +63,6 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Welcome Banner */}
       <View style={styles.welcomeBanner}>
         <View>
           <Text style={styles.welcomeText}>Welcome back, {userData.name}!</Text>
@@ -79,7 +78,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Passport Progress Card */}
       <Card style={styles.card}>
         <Card.Content>
           <View style={styles.progressHeader}>
@@ -116,7 +114,6 @@ export default function HomeScreen() {
         </Card.Content>
       </Card>
 
-      {/* Quick Actions */}
       <View style={styles.quickActions}>
         <TouchableOpacity
           style={styles.actionButton}
@@ -159,7 +156,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Parks Near You */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Parks Near You</Text>
         <TouchableOpacity onPress={() => router.push("/(tabs)/explore")}>

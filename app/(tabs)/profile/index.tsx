@@ -75,7 +75,6 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Passport Progress */}
       <Card style={styles.card}>
         <Card.Title
           title="Playground Passport Progress"
