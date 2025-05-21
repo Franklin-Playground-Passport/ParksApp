@@ -13,7 +13,7 @@ import { Card, ProgressBar } from "react-native-paper";
 
 export default function HomeScreen() {
   const router = useRouter();
-  // Mock data - would come from your app state in a real app
+
   const userData = {
     name: "John",
     completedParks: 4,
@@ -21,7 +21,6 @@ export default function HomeScreen() {
     daysRemaining: 45,
   };
 
-  // Sample featured parks
   const featuredParks = [
     {
       id: 1,
