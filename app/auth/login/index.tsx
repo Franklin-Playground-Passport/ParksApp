@@ -4,13 +4,21 @@ import React from "react";
 import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
+import { signInWithGoogleWeb } from "@/app/lib/firbaseAuth";
+
 export default function LoginScreen() {
   const router = useRouter();
 
-  const handleLogin = () => {
-    router.replace("/(tabs)/home");
+  const handleLogin = async () => {
+    try {
+      const user = await signInWithGoogleWeb();
+      router.replace("/(tabs)/home");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      alert("Google Sign-In failed: " + errorMessage);
+    }
   };
-
   return (
     <ImageBackground
       source={require("../../../assets/images/park-background.jpeg")}

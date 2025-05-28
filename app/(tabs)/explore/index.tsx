@@ -165,19 +165,16 @@ export default function ExploreScreen() {
   const [visitedParks, setVisitedParks] = useState<number[]>([]);
   const [isProgressCollapsed, setIsProgressCollapsed] = useState(false);
 
-  // Animation for sliding progress panel
   const progressHeight = useRef(new Animated.Value(1)).current;
 
   type ResponsesType = Record<number, string>;
 
   const [responses, setResponses] = useState<ResponsesType>({});
 
-  // Find the scanned park details
   const scannedPark = scannedParkId
     ? CHECKPOINTS[0].find((park) => park.id === scannedParkId)
     : null;
 
-  // Get appropriate questionnaire for the park
   const questionnaire = scannedParkId
     ? PARK_QUESTIONNAIRES[scannedParkId as keyof typeof PARK_QUESTIONNAIRES] ||
       PARK_QUESTIONNAIRES.default
