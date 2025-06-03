@@ -311,6 +311,20 @@ export default function ExploreScreen() {
           },
         ]}
       >
+        <TouchableOpacity
+          style={styles.toggleProgressButtonTop}
+          onPress={toggleProgressSection}
+        >
+          <Ionicons
+            name={isProgressCollapsed ? "chevron-up" : "chevron-down"}
+            size={20}
+            color="#4CAF50"
+          />
+          <Text style={styles.toggleProgressTextTop}>
+            {isProgressCollapsed ? "Show Progress" : "Hide Progress"}
+          </Text>
+        </TouchableOpacity>
+
         <Text style={styles.progressTitle}>Your Explorer Progress</Text>
 
         <View style={styles.progressBarContainer}>
@@ -356,75 +370,29 @@ export default function ExploreScreen() {
             <Text style={styles.statLabel}>Progress</Text>
           </View>
         </View>
-
-        <ScrollView
-          style={styles.recentActivity}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-        >
-          {visitedParks
-            .slice(-3)
-            .reverse()
-            .map((parkId) => {
-              const park = CHECKPOINTS[0].find((p) => p.id === parkId);
-              return park ? (
-                <Card key={parkId} style={styles.recentCard}>
-                  <Card.Content>
-                    <Ionicons name="location" size={20} color="#4CAF50" />
-                    <Text style={styles.recentParkName}>{park.title}</Text>
-                    <Text style={styles.recentTime}>Completed</Text>
-                  </Card.Content>
-                </Card>
-              ) : null;
-            })}
-          {visitedParks.length === 0 && (
-            <Card style={[styles.recentCard, styles.emptyCard]}>
-              <Card.Content style={styles.emptyCardContent}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={24}
-                  color="#9E9E9E"
-                />
-                <Text style={styles.emptyCardText}>Visit your first park!</Text>
-              </Card.Content>
-            </Card>
-          )}
-        </ScrollView>
       </Animated.View>
 
-      {/* Toggle Progress Button */}
-      <TouchableOpacity
-        style={[
-          styles.toggleProgressButton,
-          {
-            bottom: isProgressCollapsed ? 30 : 90,
-            backgroundColor: isProgressCollapsed
-              ? "rgba(232, 245, 233, 0.9)"
-              : "#E8F5E9",
-          },
-        ]}
-        onPress={toggleProgressSection}
-      >
-        <Ionicons
-          name={isProgressCollapsed ? "chevron-up" : "chevron-down"}
-          size={24}
-          color="#4CAF50"
-        />
-        <Text style={styles.toggleProgressText}>
-          {isProgressCollapsed ? "Show Progress" : "Hide Progress"}
-        </Text>
-      </TouchableOpacity>
+      {isProgressCollapsed && (
+        <TouchableOpacity
+          style={styles.collapsedToggleButton}
+          onPress={toggleProgressSection}
+        >
+          <Ionicons name="chevron-up" size={20} color="#4CAF50" />
+          <Text style={styles.collapsedToggleText}>Show Progress</Text>
+        </TouchableOpacity>
+      )}
 
-      {/* Scan QR Button */}
-      <TouchableOpacity
-        style={[styles.scanButton, { bottom: isProgressCollapsed ? 90 : 30 }]}
-        onPress={() => setScannerOpen(true)}
-      >
-        <Ionicons name="qr-code" size={28} color="white" />
-        <Text style={styles.scanButtonText}>Scan QR Code</Text>
-      </TouchableOpacity>
+      {/* Scan QR Button - Only show when progress is collapsed */}
+      {isProgressCollapsed && (
+        <TouchableOpacity
+          style={styles.scanButton}
+          onPress={() => setScannerOpen(true)}
+        >
+          <Ionicons name="qr-code" size={28} color="white" />
+          <Text style={styles.scanButtonText}>Scan QR Code</Text>
+        </TouchableOpacity>
+      )}
 
-      {/* QR Scanner Modal (This would integrate with a real scanner in production) */}
       <Modal
         visible={isScannerOpen}
         animationType="slide"
@@ -607,6 +575,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 20,
+    marginTop: 20, // Add margin to move bubbles down
   },
   statItem: {
     alignItems: "center",
@@ -679,22 +648,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
-  toggleProgressButton: {
-    position: "absolute",
+  toggleProgressButtonTop: {
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    elevation: 2,
-    zIndex: 10,
+    backgroundColor: "#E8F5E9",
+    marginBottom: 12,
+    elevation: 1,
   },
-  toggleProgressText: {
+  toggleProgressTextTop: {
     color: "#4CAF50",
     fontWeight: "bold",
-    fontSize: 14,
-    marginLeft: 8,
+    fontSize: 12,
+    marginLeft: 4,
   },
   modalOverlay: {
     flex: 1,
@@ -799,5 +768,25 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 40,
     borderRadius: 8,
+  },
+  collapsedToggleButton: {
+    position: "absolute",
+    bottom: 90,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: "rgba(232, 245, 233, 0.95)",
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#4CAF50",
+  },
+  collapsedToggleText: {
+    color: "#4CAF50",
+    fontWeight: "bold",
+    fontSize: 12,
+    marginLeft: 4,
   },
 });
