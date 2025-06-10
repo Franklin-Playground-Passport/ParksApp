@@ -44,7 +44,6 @@ export default function HomeScreen() {
       distance: "3.7 mi",
     },
   ];
-
   const announcements = [
     {
       id: 1,
@@ -82,8 +81,8 @@ export default function HomeScreen() {
         <Card.Content>
           <View style={styles.progressHeader}>
             <Text style={styles.progressTitle}>Your Passport Progress</Text>
-            <TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
-              <Text style={styles.viewAll}>View Details</Text>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/explore")}>
+              <Text style={styles.viewAll}>View All</Text>
             </TouchableOpacity>
           </View>
 
